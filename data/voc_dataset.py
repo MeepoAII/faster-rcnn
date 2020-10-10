@@ -54,7 +54,7 @@ class VOCBboxDataset:
         bbox = np.stack(bbox).astype(np.float32)
         label = np.stack(label).astype(np.int32)
         # when use_difficult==false, all elements in difficult are false
-        difficult = np.array(difficult, dtype=np.bool).astype(np.uint18)
+        difficult = np.array(difficult, dtype=np.bool).astype(np.int8)
 
         # Load a image
         img_file = os.path.join(self.data_dir, 'JPEGImages', id_+'.jpg')
