@@ -46,6 +46,7 @@ def _enumerate_shifted_anchor(anchor_base, feat_stride, height, width):
                       shift_y.ravel(), shift_x.ravel()), axis=1)
 
     A = anchor_base.shape[0]
+    K = shift.shape[0]
 
 
 
