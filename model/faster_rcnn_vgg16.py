@@ -25,3 +25,54 @@ def decom_vgg16():
     classfier = list(classfier)
 
     # Delete the last full connection layer
+    del classfier[6]
+
+    # delete 2 dropout layer
+    if not opt.use_drop:
+        del classfier[2]
+        del classfier[5]
+
+    classfier = nn.Sequential(*classfier)
+
+
+    # freeze the first two stages of vgg16 without bp
+    for layer in features[:10]:
+        for p in layer.parameters():
+            p.require_grad = False
+
+    return nn.Sequential(*features), classfier
+
+
+# Instantiation of feature extraction, classification part
+# RPN network, and RoIHead network, respectively
+
+
+class FasterRCNNVGG16(FasterRCNN):
+    feat_stride = 16 # downsample 16x for output of conv5
+    def __init__(self, n_fg_class=20,
+                 ratios=[0.5, 1, 2],
+                 anchor_scales=[8, 16, 32]):
+
+        # before conv5_3 classifier
+        extractor, classifier = decom_vgg16()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
