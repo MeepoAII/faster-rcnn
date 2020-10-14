@@ -32,14 +32,47 @@ class RegionProposalNetwork(nn.Module):
             np.array(self.anchor_base),
             self.feat_stride, hh, ww)
 
+        n_anchor = anchor.shape[0]
+        h = F.relu(self.conv1(x))
+
+        rpn_locs = self.loc(h)
+        rpn_locs = rpn_locs.permute(0, 2, 3, 1).contiguous().view(n, -1, 4)
+
+        rpn_socres = self.score(h)
+        rpn_scores = rpn_socres.permute(0, 2, 3, 1).contiguous()
+        rpn_softmax_scores = F.softmax(rpn_scores.view(n, hh, ww, n_anchor, 2), dim=4)
+        rpn_fg_scores = rpn_softmax_scores[:, :, :, :, 1].contiguous()
+        rpn_fg_scores = rpn_fg_scores.view(n, -1)
+        rpn_scores = rpn_scores.view(n, -1, 2)
+
+        rois = list()
+        roi_indices = list()
+
+        for i in range(n):
+            roi = self.proposal_layer(
+                rpn_locs[i].cpu().data.numpy(),
+                rpn_fg_scores[i].cpu().data.numpy(),
+                anchor, img_size, scale=scale)
+            batch_index = i * np.ones((len(roi),), dtype=np.int32)
+            rois.append(roi)
+            roi_indices.append(batch_index)
+
+        rois = np.concatenate(rois, axis=0)
+        roi_indices = np.concatenate(roi_indices, axis=0)
+
+        return rpn_locs, rpn_scores, rois, roi_indices, anchor
+
 
 
 
 
 def _enumerate_shifted_anchor(anchor_base, feat_stride, height, width):
     import numpy as xp
+
+    # 先把两个方向上的偏移量弄出来
     shift_y = xp.arange(0, height * feat_stride, feat_stride)
     shift_x = xp.arange(0, width * feat_stride, feat_stride)
+
     shift_x, shift_y = xp.meshgrid(shift_x, shift_y)
 
     shift = xp.stack((shift_y.ravel(), shift_x.ravel(),
@@ -47,6 +80,12 @@ def _enumerate_shifted_anchor(anchor_base, feat_stride, height, width):
 
     A = anchor_base.shape[0]
     K = shift.shape[0]
+
+    anchor = anchor_base.reshape((1, A, 4)) + \
+        shift.reshape((1, K, 4)).transpose((1, 0, 2))
+    anchor = anchor.reshape((K * A), 4).astype(np.float32)
+
+    return anchor
 
 
 

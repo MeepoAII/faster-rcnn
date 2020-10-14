@@ -20,6 +20,6 @@ c = np.array(c)
 
 print(f"a's shape is {a.shape}")
 
-test = np.stack((a, b, c), axis=2)
+test = np.stack((a, b, c), axis=1)
 print(test)
 print(test.shape)
