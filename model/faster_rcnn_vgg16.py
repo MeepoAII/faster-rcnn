@@ -4,7 +4,7 @@ from torch import nn
 from torchvision.models import vgg16
 from torchvision.ops import RoIPool
 
-from model.faster_rcnn import FasterRCNN
+# from model.faster_rcnn import FasterRCNN
 from utils.config import opt
 
 
@@ -29,8 +29,8 @@ def decom_vgg16():
 
     # delete 2 dropout layer
     if not opt.use_drop:
-        del classfier[2]
         del classfier[5]
+        del classfier[2]
 
     classfier = nn.Sequential(*classfier)
 
@@ -47,14 +47,14 @@ def decom_vgg16():
 # RPN network, and RoIHead network, respectively
 
 
-class FasterRCNNVGG16(FasterRCNN):
-    feat_stride = 16 # downsample 16x for output of conv5
-    def __init__(self, n_fg_class=20,
-                 ratios=[0.5, 1, 2],
-                 anchor_scales=[8, 16, 32]):
-
-        # before conv5_3 classifier
-        extractor, classifier = decom_vgg16()
+# class FasterRCNNVGG16(FasterRCNN):
+#     feat_stride = 16 # downsample 16x for output of conv5
+#     def __init__(self, n_fg_class=20,
+#                  ratios=[0.5, 1, 2],
+#                  anchor_scales=[8, 16, 32]):
+#
+#         # before conv5_3 classifier
+#         extractor, classifier = decom_vgg16()
 
 
 
