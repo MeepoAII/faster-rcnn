@@ -32,14 +32,14 @@ class RegionProposalNetwork(nn.Module):
             np.array(self.anchor_base),
             self.feat_stride, hh, ww)
 
-        n_anchor = anchor.shape[0]
+        n_anchor = anchor.shape[0] // (hh * ww)
         h = F.relu(self.conv1(x))
 
         rpn_locs = self.loc(h)
         rpn_locs = rpn_locs.permute(0, 2, 3, 1).contiguous().view(n, -1, 4)
 
-        rpn_socres = self.score(h)
-        rpn_scores = rpn_socres.permute(0, 2, 3, 1).contiguous()
+        rpn_scores = self.score(h)
+        rpn_scores = rpn_scores.permute(0, 2, 3, 1).contiguous()
         rpn_softmax_scores = F.softmax(rpn_scores.view(n, hh, ww, n_anchor, 2), dim=4)
         rpn_fg_scores = rpn_softmax_scores[:, :, :, :, 1].contiguous()
         rpn_fg_scores = rpn_fg_scores.view(n, -1)
@@ -81,6 +81,7 @@ def _enumerate_shifted_anchor(anchor_base, feat_stride, height, width):
     A = anchor_base.shape[0]
     K = shift.shape[0]
 
+    # start shift
     anchor = anchor_base.reshape((1, A, 4)) + \
         shift.reshape((1, K, 4)).transpose((1, 0, 2))
     anchor = anchor.reshape((K * A), 4).astype(np.float32)
@@ -93,5 +94,5 @@ def normal_init(m, mean, stddev, truncated=False):
     if truncated:
         m.weight.data.normal_().fmod_(2).mul_(stddev).add_(mean)
     else:
-        m.weight.data.normal(mean, stddev)
+        m.weight.data.normal_(mean, stddev)
         m.bias.data.zero_()

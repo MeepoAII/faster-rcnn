@@ -5,8 +5,10 @@ from torchvision.models import vgg16
 from torchvision.ops import RoIPool
 
 # from model.faster_rcnn import FasterRCNN
-from utils.config import opt
-
+import sys
+sys.path.append("..")
+from utils import config
+opt = config.Config()
 
 def decom_vgg16():
     # the 30th layer of features is relu of conv5_3
